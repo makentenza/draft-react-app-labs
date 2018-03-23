@@ -75,7 +75,7 @@ pipelineNames.each {
         }
         if (pipelineName.contains('dev')){
             triggers {
-                cron('H/60 H/2 * * *')
+                cron('*/5 * * * *')
             }
         }
         steps {
@@ -144,6 +144,10 @@ pipelineNames.each {
         wrappers {
             buildWrappers(delegate)
         }
+        if (pipelineName.contains('dev')){
+            triggers {
+                cron('*/1 * * * *')
+            }
         steps {
             steps {
                 shell('#!/bin/bash' + newLine +
@@ -196,6 +200,10 @@ pipelineNames.each {
             buildWrappers(delegate)
 
         }
+        if (pipelineName.contains('dev')){
+            triggers {
+                cron('*/1 * * * *')
+            }
         steps {
             steps {
                 shell('#!/bin/bash' + newLine +
