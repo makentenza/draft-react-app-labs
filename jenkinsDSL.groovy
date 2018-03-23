@@ -2,8 +2,8 @@
 
 //  list of apps
 // devlop / master branches for each pipeline
-def pipelineNames = ["dev", "test"]
-def appName = "cc-fe"
+def pipelineNames = ["dev", "test", "uat"]
+def appName = "summit-labs-fe"
 
 //  Globals for across all the jobs
 def gitBaseUrlFE = "https://github.com/makentenza/draft-app-labs"
