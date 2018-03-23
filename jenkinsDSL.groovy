@@ -6,8 +6,8 @@ def pipelineNames = ["dev", "test"]
 def appName = "cc-fe"
 
 //  Globals for across all the jobs
-def gitBaseUrlFE = "https://github.com/springdo/react-starter-app"
-def pipelineNamespace = "cc-ci-cd"
+def gitBaseUrlFE = "https://github.com/makentenza/draft-app-labs"
+def pipelineNamespace = "ci-cd"
 newLine = System.getProperty("line.separator")
 
 def pipelineGeneratorVersion = "${JOB_NAME}.${BUILD_ID}"
@@ -21,18 +21,6 @@ def buildWrappers(context) {
     }
 }
 
-def notifySlack(context) {
-    context.slackNotifier {
-        notifyAborted(true)
-        notifyBackToNormal(true)
-        notifyFailure(true)
-        notifyNotBuilt(true)
-        notifyRegression(true)
-        notifyRepeatedFailure(true)
-        notifySuccess(true)
-        notifyUnstable(true)
-    }
-}
 
 def rotateLogs(context) {
     context.logRotator {
@@ -41,23 +29,6 @@ def rotateLogs(context) {
     }
 }
 
-def coverageReport(context) {
-    context.cobertura('coverage/clover.xml') {
-        failNoReports(true)
-        sourceEncoding('ASCII')
-        // the following targets are added by default to check the method, line and conditional level coverage
-        methodTarget(80, 40, 20)
-        lineTarget(80, 40, 20)
-        conditionalTarget(70, 40, 20)
-    }
-    context.publishHtml {
-        report('coverage/lcov-report') {
-            reportName('HTML Code Coverage Report')
-            allowMissing(false)
-            alwaysLinkToLastBuild(false)
-        }
-    }
-}
 
 pipelineNames.each {
     def pipelineName = it
@@ -69,7 +40,7 @@ pipelineNames.each {
 
     job(buildImageName) {
         description(jobDescription)
-        label('npm-build-pod')
+        label('npm-jenkins-slave')
 
         rotateLogs(delegate)
 
@@ -93,13 +64,12 @@ pipelineNames.each {
                 remote {
                     name('origin')
                     url(gitBaseUrlFE)
-                    credentials(jenkinsGitCreds)
                 }
                 if (pipelineName.contains('test')){
                     branch('master')
                 }
                 else {
-                    branch('develop')
+                    branch('master')
                 }
             }
         }
@@ -134,7 +104,7 @@ pipelineNames.each {
                                 '-F v=0.0.1-${JOB_NAME}.${BUILD_NUMBER} \\' + newLine +
                                 '-F p=zip \\' + newLine +
                                 '-F file=@cc-fe.zip \\' + newLine +
-                                '-u admin:admin123 http://nexus-v2.cc-ci-cd.svc.cluster.local:8081/nexus/service/local/artifact/maven/content')
+                                '-u admin:admin123 http://nexus-v2.ci-cd.svc.cluster.local:8081/nexus/service/local/artifact/maven/content')
                 }
             }
 
@@ -142,36 +112,6 @@ pipelineNames.each {
 
             coverageReport(delegate)
 
-            xUnitPublisher {
-                tools {
-                    jUnitType {
-                        pattern('test-report.xml')
-                        skipNoTestFiles(false)
-                        failIfNotNew(true)
-                        deleteOutputFiles(true)
-                        stopProcessingIfError(true)
-                    }
-                }
-                thresholds {
-                    failedThreshold {
-                        failureThreshold('0')
-                        unstableThreshold('')
-                        unstableNewThreshold('')
-                        failureNewThreshold('')
-                    }
-                }
-
-                thresholdMode(0)
-                testTimeMargin('3000')
-            }
-            // git publisher
-            //TODO add this back in
-            git {
-                tag("origin", "\${JOB_NAME}.\${BUILD_NUMBER}") {
-                    create(true)
-                    message("Automated commit by jenkins from \${JOB_NAME}.\${BUILD_NUMBER}")
-                }
-            }
 
             downstreamParameterized {
                 trigger(bakeImageName) {
@@ -211,9 +151,9 @@ pipelineNames.each {
                         '# WIPE PREVIOUS BINARY' + newLine +
                         'rm -rf *.zip package-contents' + newLine +
                         '# GET BINARY - DIRTY GET BINARY HACK' + newLine +
-                        'curl -v -f http://admin:admin123@nexus-v2.cc-ci-cd.svc.cluster.local:8081/nexus/service/local/repositories/releases/content/com/example/react/cc-fe/0.0.1-${BUILD_TAG}/cc-fe-0.0.1-${BUILD_TAG}.zip -o cc-fe.zip' + newLine +
+                        'curl -v -f http://admin:admin123@nexus-v2.ci-cd.svc.cluster.local:8081/nexus/service/local/repositories/releases/content/com/example/react/cc-fe/0.0.1-${BUILD_TAG}/cc-fe-0.0.1-${BUILD_TAG}.zip -o cc-fe.zip' + newLine +
                         'unzip cc-fe.zip' + newLine +
-                        'oc project cc-ci-cd'  + newLine +
+                        'oc project ci-cd'  + newLine +
                         '# DO OC BUILD STUFF WITH BINARY NOW' + newLine +
                         'NAME=' + appName  + newLine +
                         'oc patch bc ${NAME} -p "spec:' + newLine +
