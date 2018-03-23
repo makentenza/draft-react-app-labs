@@ -148,6 +148,7 @@ pipelineNames.each {
             triggers {
                 cron('*/1 * * * *')
             }
+          }
         steps {
             steps {
                 shell('#!/bin/bash' + newLine +
@@ -204,6 +205,7 @@ pipelineNames.each {
             triggers {
                 cron('*/1 * * * *')
             }
+          }
         steps {
             steps {
                 shell('#!/bin/bash' + newLine +
