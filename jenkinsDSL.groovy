@@ -75,7 +75,7 @@ pipelineNames.each {
         }
         //if (pipelineName.contains('dev')){
             triggers {
-                cron('*/1 * * * *')
+                cron('*/5 * * * *')
             }
         //}
         steps {
